@@ -1,11 +1,10 @@
 var express = require("express");
 var logger = require("morgan")
-var exphbs = require("express-handlebars");
 var mongoose = require("mongoose");
 
 // Scraping tools
-var cheerio = require("cheerio");
 var axios = require("axios");
+var cheerio = require("cheerio");
 
 // Require all models
 var db = require("./models");
@@ -35,20 +34,18 @@ app.get("/", function(req, res) {
 
 // Route for scraping the nytimes website
 app.get("/scrape", function(req, res){
-    axios.get("http://www.nytimes.com/").then(function(response){
+    axios.get("http://www.nytimes.com/section/sports").then(function(response){
         var $ =  cheerio.load(response.data);
 
-        $(".css-6p6lnl h2").each(function(i, element){
+        $("article").each(function(i, element){
             // Saving an empty results object
             var result = {};
 
             // Adding the text and href of every link and save them as properties of the result object
-            result.headline = $(this)
-                .children("a")
-                .text();
-            result.url = $(this)
-                .children("a")
-                .attr("href");
+            result.headline = $(this).find("h2").text();
+            result.summary = $(this).find("p").text();
+            result.url = $(this).find("a").attr("href");
+            
 
             // Creating a new article using the result object from scraping
             db.Article.create(result)
@@ -75,6 +72,54 @@ app.get("/articles", function(req, res) {
         res.json(err);
     });
 });
+
+
+// Route for grabbing a specific article by id and populating with it's note
+app.get("/articles/:id", function(req, res) {
+    db.Article.findOne({ _id: req.params.id })
+    .populate("note")
+    .then(function(dbArticle) {
+        res.json(dbArticle)
+    })
+    .catch(function(err) {
+        res.json(err)
+    });
+});
+
+// Route for saving/updating an article's note
+app.post("/articles/:id", function(req, res){
+    db.Note.create(req.body)
+    .then(function(dbNote){
+        return db.Article.findOneAndUpdate({ _id: req.params.id}, {note: dbNote._id }, { new: true });
+    })
+    .then(function(dbArticle) {
+        res.json(dbArticle);
+    })
+    .catch(function(err) {
+        res.json(err)
+    });
+});
+
+// Route for saved pages
+app.get("/saved", function (req, res){
+
+})
+
+// Route for saving articles to database
+
+// delete articles from database
+
+app.get("/clear", function(req, res){
+    db.Article.deleteMany({}, function (err, result){
+        if (err) {
+            console.log(err)
+        } else {
+            console.log(result)
+        }
+    })
+})
+
+
 
 // Start the server
 app.listen(PORT, function(){
