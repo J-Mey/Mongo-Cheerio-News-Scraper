@@ -92,12 +92,13 @@ html {
   textarea, input {
     display: block;
     width: 100%;
-    background-color: lightslategrey;
+    padding: 5px;
+    background-color: rgb(177, 194, 250);
   }
 
   .card {
     border-radius: 0;
-    box-shadow: 3px 3px 20px lightslategrey;
+    box-shadow: 3px 3px 20px beige;
     margin: 20px 0;
   }
   
@@ -169,12 +170,6 @@ html {
   
   .m-top-80 {
     margin-top: 80px;
-  }
-  
-  textarea {
-    padding: 10px;
-    resize: none;
-    width: 100%;
   }
   
   .bootbox-body .btn {

@@ -25,7 +25,12 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // Connection to Mongo DB
-mongoose.connect("mongodb://localhost/news-scraper", { useNewUrlParser: true });
+//mongoose.connect("mongodb://localhost/news-scraper", { useNewUrlParser: true });
+
+var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/news-scraper";
+
+mongoose.connect(MONGODB_URI);
+
 
 // Routes
 app.get("/", function(req, res) {
@@ -36,7 +41,6 @@ app.get("/", function(req, res) {
 app.get("/scrape", function(req, res){
     axios.get("http://www.nytimes.com/section/sports").then(function(response){
         var $ =  cheerio.load(response.data);
-
         $("article").each(function(i, element){
             // Saving an empty results object
             var result = {};
@@ -45,7 +49,6 @@ app.get("/scrape", function(req, res){
             result.headline = $(this).find("h2").text();
             result.summary = $(this).find("p").text();
             result.url = $(this).find("a").attr("href");
-            
 
             // Creating a new article using the result object from scraping
             db.Article.create(result)
@@ -56,9 +59,7 @@ app.get("/scrape", function(req, res){
                     console.log(err);
                 });      
         });
-
-        res.send("Scrape Complete!")
-        
+        res.send("Scrape Complete!")        
     });
 });
 
@@ -72,7 +73,6 @@ app.get("/articles", function(req, res) {
         res.json(err);
     });
 });
-
 
 // Route for grabbing a specific article by id and populating with it's note
 app.get("/articles/:id", function(req, res) {
@@ -90,7 +90,7 @@ app.get("/articles/:id", function(req, res) {
 app.post("/articles/:id", function(req, res){
     db.Note.create(req.body)
     .then(function(dbNote){
-        return db.Article.findOneAndUpdate({ _id: req.params.id}, {note: dbNote._id }, { new: true });
+        return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
     })
     .then(function(dbArticle) {
         res.json(dbArticle);
@@ -101,25 +101,19 @@ app.post("/articles/:id", function(req, res){
 });
 
 // Route for saved pages
-app.get("/saved", function (req, res){
-
-})
 
 // Route for saving articles to database
 
 // delete articles from database
-
 app.get("/clear", function(req, res){
-    db.Article.deleteMany({}, function (err, result){
+    db.Article.deleteMany({}, function (err, res){
         if (err) {
             console.log(err)
         } else {
-            console.log(result)
+            console.log(res)
         }
     })
 })
-
-
 
 // Start the server
 app.listen(PORT, function(){

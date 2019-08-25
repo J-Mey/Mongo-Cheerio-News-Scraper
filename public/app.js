@@ -5,6 +5,8 @@ $.getJSON("/articles", function(data) {
     }
 })
 
+
+
 $(document).on("click", "p", function(){
     $("#notes").empty();
     var thisId = $(this).attr("data-id");
@@ -48,3 +50,17 @@ $(document).on("click", "#savenote", function() {
     $("#titleinput").val("");
     $("#bodyinput").val("");
 })
+
+$(document).on("click", ".scrape-new", function(){
+    $.get("/scrape").then(function(data){
+        window.location.href = "/"
+    });
+})
+
+$(document).on("click", ".clear", function(){
+   $.get("/clear").then(function(data){
+       $(".article-container").empty;
+       window.location.href = "/"
+   })
+})
+
